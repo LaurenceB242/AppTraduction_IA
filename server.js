@@ -1,4 +1,21 @@
-require('dotenv').config(); // <-- Cette ligne DOIT être à la ligne 1 !
+const fs = require('fs');
+const path = require('path');
+const envPath = path.join(__dirname, 'ai-translator', '.env');
+
+require('dotenv').config({ path: envPath });
+
+// Support the current .env format while the token is moved onto the key line.
+if (!process.env.OPENAI_API_KEY) {
+    const token = fs.readFileSync(envPath, 'utf8')
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .find((line) => line.startsWith('sk-'));
+
+    if (token) {
+        process.env.OPENAI_API_KEY = token;
+    }
+}
+
 const express = require('express');
 const cors = require('cors');
 const { OpenAI } = require('openai');
@@ -44,4 +61,3 @@ app.post('/api/translate', async (req, res) => {
 });
 
 app.listen(3001, () => console.log('Serveur actif sur le port 3001'));
-
